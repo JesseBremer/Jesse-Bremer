@@ -1,5 +1,15 @@
+:root {
+  --color-primary-green: #606C38;
+  --color-dark-green: #283618;
+  --color-light-cream: #FEFAE0;
+  --color-medium-brown: #DDA15E;
+  --color-dark-brown: #BC6C25;
+}
+
 * {
     margin: 0;
+    background-color: var(--color-dark-green);
+    color: var(--color-medium-brown);
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
@@ -11,7 +21,8 @@
     text-align: center;
 }
 
-.title, .about, .contact-me {
-    margin: 3rem 0;
+.title, .about, .skills, .contact-me {
+    margin: 2rem 0 0;
+    max-width: 50%;
 }
 
