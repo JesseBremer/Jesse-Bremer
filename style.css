@@ -26,3 +26,20 @@
     max-width: 50%;
 }
 
+.skills-list {
+    display: grid;
+    grid-template-columns: auto auto; 
+    gap: 10px 15px; 
+    margin: 0;
+    padding: 0; 
+}
+
+.skills-list dt {
+    text-align: right; 
+    font-weight: bold; 
+    padding-right: 5px; 
+}
+
+.skills-list dd {
+    margin-left: 0; 
+}
