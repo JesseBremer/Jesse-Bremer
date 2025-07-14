@@ -12,14 +12,6 @@
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.page-container {
-    /* display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center; */
-}
-
 nav {
     padding: 3rem 0;
     display: flex;
@@ -43,31 +35,39 @@ nav ul {
 
 nav a {
     text-decoration: none;
-    color: var(--color-gold);
+    color: var(--color-light-gold);
     font-size: 2em;
     padding: 10px;
 }
 
+.highlight-box {
+    display: flex;
+    margin: 0 3rem;
+    border: 2px solid var(--color-gold);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.text-side {
+    color: var(--color-light-gold);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+}
+
 .personal-image {
-    max-width: 500px;
-    max-height: 500px;
+    height: 300px;
+    border-radius: 10px;
 }
 
-/* .title, .about, .skills, .contact-me {
-    margin: 1.5rem;
-    max-width: 50%;
-    background: var(--color-light-gold);
-    padding: 2rem;
-    border-radius: 2%;
-}
-
-.skills-list {
+ .skills-list {
     display: grid;
     grid-template-columns: auto auto; 
     gap: 10px 15px; 
     margin: 0;
     padding: 0; 
-}
+} 
 
 .skills-list dt {
     text-align: right; 
@@ -77,4 +77,4 @@ nav a {
 
 .skills-list dd {
     margin-left: 0; 
-} */
+}
