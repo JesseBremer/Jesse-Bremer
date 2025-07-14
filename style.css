@@ -449,31 +449,71 @@ i {
 }
 
 .song-patterns {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     gap: 15px;
     margin-top: 1.5rem;
-    flex-wrap: wrap;
+    justify-items: center;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .song-btn {
-    padding: 12px 20px;
-    border: 2px solid var(--hyrule-gold);
-    border-radius: 25px;
-    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
-    color: var(--hyrule-cream);
-    font-family: 'Cinzel', serif;
-    font-size: 1em;
-    font-weight: 600;
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--hyrule-gold);
+    border-radius: 50%;
+    font-size: 1.5em;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'MedievalSharp', cursive;
+    position: relative;
 }
 
 .song-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.4), 0 0 15px var(--triforce-gold);
-    background: linear-gradient(145deg, var(--hyrule-light-green), var(--kokiri-green));
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--triforce-gold);
+}
+
+.song-btn {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: white;
+}
+
+.song-btn.forest {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--kokiri-green));
+    color: #228B22;
+}
+
+.song-btn.fire {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: #FF0000;
+}
+
+.song-btn.water {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: #0000FF;
+}
+
+.song-btn.spirit {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: #FFA500;
+}
+
+.song-btn.shadow {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: #800080;
+}
+
+.song-btn.light {
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: #FFFF00;
 }
 
 .contact-me {
@@ -530,13 +570,15 @@ i {
     }
     
     .song-patterns {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        max-width: 200px;
     }
     
     .song-btn {
-        width: 80%;
-        margin: 5px 0;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3em;
     }
     
     nav ul {

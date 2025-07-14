@@ -7,52 +7,52 @@ class OcarinaPlayer {
         this.lastPlayedKey = null;
         
         this.keyMapping = {
-            'ArrowUp': 'B',
-            'ArrowDown': 'D', 
-            'ArrowLeft': 'A',
-            'ArrowRight': 'E',
-            'KeyA': 'F'
+            'ArrowUp': 'B5',
+            'ArrowDown': 'D5', 
+            'ArrowLeft': 'A5',
+            'ArrowRight': 'E5',
+            'KeyA': 'F5'
         };
         
         this.noteToArrow = {
-            'B': '↑',
-            'F': 'A',
-            'D': '↓',
-            'A': '←',
-            'E': '→'
+            'B5': '↑',
+            'F5': 'A',
+            'D5': '↓',
+            'A5': '←',
+            'E5': '→'
         };
         
         this.noteFrequencies = {
-            'D': 293.66,
-            'E': 329.63,
-            'F': 349.23,
-            'A': 440.00,
-            'B': 493.88
+            'D5': 587.33,
+            'E5': 659.25,
+            'F5': 698.46,
+            'A5': 880.00,
+            'B5': 987.77
         };
         
         this.notePositions = {
-            'B': 5,
-            'A': 15,
-            'G': 25,
-            'F': 35,
-            'E': 45,
-            'D': 55,
-            'C': 65
+            'B5': 5,
+            'A5': 15,
+            'G5': 25,
+            'F5': 35,
+            'E5': 45,
+            'D5': 55,
+            'C5': 65
         };
         
         this.songs = {
-            'zelda': ['A', 'B', 'E', 'A', 'B', 'E'],
-            'epona': ['B', 'A', 'E', 'B', 'A', 'E'],
-            'saria': ['D', 'E', 'A', 'D', 'E', 'A'],
-            'sun': ['E', 'D', 'B', 'E', 'D', 'B'],
-            'song_of_time': ['E', 'F', 'D', 'E', 'F', 'D'],
-            'song_of_storms': ['F', 'D', 'B', 'F', 'D', 'B'],
-            'minuet': ['F', 'B', 'A', 'E', 'A', 'E'],
-            'bolero': ['D', 'F', 'D', 'F', 'E', 'D', 'E', 'D'],
-            'serenade': ['F', 'D', 'E', 'E', 'A'],
-            'requiem': ['F', 'D', 'F', 'E', 'D', 'F'],
-            'nocturne': ['A', 'E', 'E', 'F', 'A', 'E', 'D'],
-            'prelude': ['B', 'E', 'B', 'E', 'A', 'B']
+            'zelda': ['A5', 'B5', 'E5', 'A5', 'B5', 'E5'],
+            'epona': ['B5', 'A5', 'E5', 'B5', 'A5', 'E5'],
+            'saria': ['D5', 'E5', 'A5', 'D5', 'E5', 'A5'],
+            'sun': ['E5', 'D5', 'B5', 'E5', 'D5', 'B5'],
+            'song_of_time': ['E5', 'F5', 'D5', 'E5', 'F5', 'D5'],
+            'song_of_storms': ['F5', 'D5', 'B5', 'F5', 'D5', 'B5'],
+            'minuet': ['F5', 'B5', 'A5', 'E5', 'A5', 'E5'],
+            'bolero': ['D5', 'F5', 'D5', 'F5', 'E5', 'D5', 'E5', 'D5'],
+            'serenade': ['F5', 'D5', 'E5', 'E5', 'A5'],
+            'requiem': ['F5', 'D5', 'F5', 'E5', 'D5', 'F5'],
+            'nocturne': ['A5', 'E5', 'E5', 'F5', 'A5', 'E5', 'D5'],
+            'prelude': ['B5', 'E5', 'B5', 'E5', 'A5', 'B5']
         };
         
         this.init();
