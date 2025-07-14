@@ -1,45 +1,86 @@
-// Zelda Ocarina of Time Music System
 class OcarinaPlayer {
     constructor() {
         this.audioContext = null;
         this.isPlaying = false;
+        this.currentSong = [];
+        this.maxNotesOnStaff = 16;
+        
+        this.keyMapping = {
+            'ArrowUp': 'A',
+            'ArrowDown': 'F', 
+            'ArrowLeft': 'D',
+            'ArrowRight': 'B',
+            'KeyA': 'G'
+        };
+        
+        this.noteToArrow = {
+            'A': '↑',
+            'F': '↓',
+            'D': '←',
+            'B': '→',
+            'G': 'A'
+        };
+        
         this.noteFrequencies = {
-            'C': 261.63,
-            'D': 293.66,
-            'E': 329.63,
-            'F': 349.23,
-            'G': 392.00,
             'A': 440.00,
-            'B': 493.88
+            'F': 349.23,
+            'D': 293.66,
+            'B': 493.88,
+            'G': 392.00
+        };
+        
+        this.notePositions = {
+            'A': 5,
+            'G': 15,
+            'F': 25,
+            'E': 35,
+            'D': 45,
+            'C': 55,
+            'B': 65
         };
         
         this.songs = {
-            'zelda': ['E', 'F', 'E', 'F', 'E', 'F', 'A', 'G'], // Zelda's Lullaby
-            'epona': ['D', 'A', 'B', 'D', 'A', 'B'], // Epona's Song
-            'saria': ['F', 'A', 'B', 'F', 'A', 'B'] // Saria's Song
+            'zelda': ['D', 'F', 'A', 'D', 'F', 'A', 'D'],
+            'epona': ['A', 'B', 'A', 'A', 'B', 'A'],
+            'saria': ['F', 'A', 'B', 'F', 'A', 'B']
         };
         
         this.init();
     }
     
     init() {
-        // Initialize audio context on first user interaction
         document.addEventListener('click', () => {
             if (!this.audioContext) {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
         }, { once: true });
         
-        // Add event listeners for ocarina buttons
+        document.addEventListener('keydown', (e) => {
+            if (this.keyMapping[e.code]) {
+                e.preventDefault();
+                this.handleNotePlay(this.keyMapping[e.code], e.code);
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (this.keyMapping[e.code]) {
+                this.handleNoteRelease(e.code);
+            }
+        });
+        
         document.querySelectorAll('.ocarina-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const note = e.target.dataset.note;
-                this.playNote(note);
+                const key = e.target.dataset.key;
+                this.handleNotePlay(note, key);
                 this.animateButton(e.target);
+                
+                setTimeout(() => {
+                    this.handleNoteRelease(key);
+                }, 300);
             });
         });
         
-        // Add event listeners for song buttons
         document.querySelectorAll('.song-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const song = e.target.dataset.song;
@@ -47,6 +88,30 @@ class OcarinaPlayer {
                 this.animateSongButton(e.target);
             });
         });
+        
+        document.querySelector('.clear-staff-btn').addEventListener('click', () => {
+            this.clearStaff();
+        });
+    }
+    
+    handleNotePlay(note, keyCode) {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        this.playNote(note);
+        this.addNoteToStaff(note);
+        this.highlightKey(keyCode);
+        
+        this.currentSong.push(note);
+        if (this.currentSong.length > this.maxNotesOnStaff) {
+            this.currentSong.shift();
+            this.refreshStaff();
+        }
+    }
+    
+    handleNoteRelease(keyCode) {
+        this.unhighlightKey(keyCode);
     }
     
     playNote(note, duration = 0.5) {
@@ -61,7 +126,6 @@ class OcarinaPlayer {
         oscillator.frequency.setValueAtTime(this.noteFrequencies[note], this.audioContext.currentTime);
         oscillator.type = 'sine';
         
-        // Create envelope for more musical sound
         gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.1);
         gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
@@ -70,19 +134,94 @@ class OcarinaPlayer {
         oscillator.stop(this.audioContext.currentTime + duration);
     }
     
+    addNoteToStaff(note) {
+        const notesContainer = document.querySelector('.notes-container');
+        const noteElement = document.createElement('div');
+        noteElement.className = 'musical-note';
+        noteElement.textContent = this.noteToArrow[note] || note;
+        
+        const yPosition = this.notePositions[note] || 45;
+        const xPosition = notesContainer.children.length * 35 + 10;
+        
+        noteElement.style.top = yPosition + 'px';
+        noteElement.style.left = xPosition + 'px';
+        
+        notesContainer.appendChild(noteElement);
+        
+        if (notesContainer.children.length > this.maxNotesOnStaff) {
+            notesContainer.removeChild(notesContainer.firstChild);
+            this.repositionNotes();
+        }
+    }
+    
+    repositionNotes() {
+        const notesContainer = document.querySelector('.notes-container');
+        Array.from(notesContainer.children).forEach((note, index) => {
+            note.style.left = (index * 35 + 10) + 'px';
+        });
+    }
+    
+    clearStaff() {
+        const notesContainer = document.querySelector('.notes-container');
+        notesContainer.innerHTML = '';
+        this.currentSong = [];
+    }
+    
+    refreshStaff() {
+        this.clearStaff();
+        this.currentSong.forEach(note => {
+            this.addNoteToStaff(note);
+        });
+    }
+    
     async playSong(songName) {
         if (this.isPlaying) return;
         
         this.isPlaying = true;
+        this.clearStaff();
         const notes = this.songs[songName];
         
         for (let i = 0; i < notes.length; i++) {
-            this.playNote(notes[i], 0.6);
+            this.playNote(notes[i], 0.8);
+            this.addNoteToStaff(notes[i]);
             this.highlightNote(notes[i]);
-            await this.wait(700);
+            await this.wait(900);
         }
         
         this.isPlaying = false;
+    }
+    
+    highlightKey(keyCode) {
+        const button = document.querySelector(`[data-key="${keyCode}"]`);
+        if (button) {
+            button.classList.add('active');
+        }
+        
+        const keyDisplays = document.querySelectorAll('.key-display');
+        keyDisplays.forEach(display => {
+            const keyText = display.textContent.trim();
+            if ((keyCode === 'ArrowUp' && keyText === '↑') ||
+                (keyCode === 'ArrowDown' && keyText === '↓') ||
+                (keyCode === 'ArrowLeft' && keyText === '←') ||
+                (keyCode === 'ArrowRight' && keyText === '→') ||
+                (keyCode === 'KeyA' && keyText === 'A')) {
+                display.style.transform = 'scale(1.1)';
+                display.style.boxShadow = '0 0 15px var(--triforce-gold)';
+            }
+        });
+    }
+    
+    unhighlightKey(keyCode) {
+        const button = document.querySelector(`[data-key="${keyCode}"]`);
+        if (button) {
+            button.classList.remove('active');
+        }
+        
+        const keyDisplays = document.querySelectorAll('.key-display');
+        keyDisplays.forEach(display => {
+            display.style.transform = 'scale(1)';
+            display.style.boxShadow = '0 3px 6px rgba(0,0,0,0.3)';
+        });
     }
     
     wait(ms) {
@@ -112,20 +251,70 @@ class OcarinaPlayer {
     highlightNote(note) {
         const button = document.querySelector(`[data-note="${note}"]`);
         if (button) {
-            button.style.background = 'linear-gradient(145deg, var(--triforce-gold), var(--hyrule-gold))';
-            button.style.transform = 'scale(1.1)';
-            button.style.boxShadow = '0 0 25px var(--triforce-gold)';
+            button.classList.add('active');
             
             setTimeout(() => {
-                button.style.background = 'linear-gradient(145deg, var(--hyrule-light-green), var(--kokiri-green))';
-                button.style.transform = 'scale(1)';
-                button.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-            }, 500);
+                button.classList.remove('active');
+            }, 700);
         }
     }
 }
 
-// Magical particle effects
+class NaviCursor {
+    constructor() {
+        this.cursor = null;
+        this.trailParticles = [];
+        this.lastX = 0;
+        this.lastY = 0;
+        this.init();
+    }
+    
+    init() {
+        this.cursor = document.createElement('div');
+        this.cursor.className = 'navi-cursor';
+        this.cursor.innerHTML = `
+            <div class="navi-body"></div>
+            <div class="navi-wing left"></div>
+            <div class="navi-wing right"></div>
+        `;
+        document.body.appendChild(this.cursor);
+        
+        document.addEventListener('mousemove', (e) => {
+            this.updateCursor(e.clientX, e.clientY);
+            this.createTrail(e.clientX, e.clientY);
+        });
+        
+        document.addEventListener('mouseleave', () => {
+            this.cursor.style.opacity = '0';
+        });
+        
+        document.addEventListener('mouseenter', () => {
+            this.cursor.style.opacity = '1';
+        });
+    }
+    
+    updateCursor(x, y) {
+        this.cursor.style.left = x + 'px';
+        this.cursor.style.top = y + 'px';
+        this.lastX = x;
+        this.lastY = y;
+    }
+    
+    createTrail(x, y) {
+        const trail = document.createElement('div');
+        trail.className = 'fairy-trail';
+        trail.style.left = (x + Math.random() * 10 - 5) + 'px';
+        trail.style.top = (y + Math.random() * 10 - 5) + 'px';
+        document.body.appendChild(trail);
+        
+        setTimeout(() => {
+            if (trail.parentNode) {
+                trail.parentNode.removeChild(trail);
+            }
+        }, 800);
+    }
+}
+
 class MagicalEffects {
     constructor() {
         this.particles = [];
@@ -135,7 +324,6 @@ class MagicalEffects {
     }
     
     init() {
-        // Create canvas for particle effects
         this.canvas = document.createElement('canvas');
         this.canvas.style.position = 'fixed';
         this.canvas.style.top = '0';
@@ -151,9 +339,14 @@ class MagicalEffects {
         
         window.addEventListener('resize', () => this.resize());
         
-        // Create particles when hovering over highlight boxes
         document.querySelectorAll('.highlight-box').forEach(box => {
             box.addEventListener('mouseenter', () => this.createParticles(box));
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyA'].includes(e.code)) {
+                this.createMusicParticles();
+            }
         });
         
         this.animate();
@@ -178,6 +371,27 @@ class MagicalEffects {
                 decay: 0.02,
                 color: colors[Math.floor(Math.random() * colors.length)],
                 size: Math.random() * 3 + 1
+            });
+        }
+    }
+    
+    createMusicParticles() {
+        const staffContainer = document.querySelector('.music-staff-container');
+        if (!staffContainer) return;
+        
+        const rect = staffContainer.getBoundingClientRect();
+        const colors = ['#FFD700', '#F7E98E', '#228B22'];
+        
+        for (let i = 0; i < 8; i++) {
+            this.particles.push({
+                x: rect.left + Math.random() * rect.width,
+                y: rect.top + rect.height * 0.5,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3 - 1,
+                life: 1,
+                decay: 0.015,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 4 + 2
             });
         }
     }
@@ -207,12 +421,11 @@ class MagicalEffects {
     }
 }
 
-// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new OcarinaPlayer();
     new MagicalEffects();
+    new NaviCursor();
     
-    // Add triforce symbol animation
     const style = document.createElement('style');
     style.textContent = `
         @keyframes triforce-glow {
@@ -223,6 +436,16 @@ document.addEventListener('DOMContentLoaded', () => {
         h1, h2, h3 {
             animation: triforce-glow 3s ease-in-out infinite;
         }
+        
+        .key-display {
+            transition: all 0.2s ease;
+        }
     `;
     document.head.appendChild(style);
+    
+    document.addEventListener('keydown', (e) => {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyA'].includes(e.code)) {
+            document.body.classList.add('keyboard-active');
+        }
+    });
 });

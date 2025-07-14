@@ -38,16 +38,55 @@
                 
                 <div class="ocarina-section">
                     <h3>🎵 Play the Ocarina 🎵</h3>
-                    <p>Click the buttons to play notes like Link's Ocarina!</p>
-                    <div class="ocarina-controls">
-                        <button class="ocarina-btn" data-note="C">C</button>
-                        <button class="ocarina-btn" data-note="D">D</button>
-                        <button class="ocarina-btn" data-note="E">E</button>
-                        <button class="ocarina-btn" data-note="F">F</button>
-                        <button class="ocarina-btn" data-note="G">G</button>
-                        <button class="ocarina-btn" data-note="A">A</button>
-                        <button class="ocarina-btn" data-note="B">B</button>
+                    <p>Use keyboard controls like Link's Ocarina!</p>
+                    
+                    <div class="music-staff-container">
+                        <div class="staff-title">Your Song:</div>
+                        <div class="music-staff">
+                            <div class="staff-lines">
+                                <div class="staff-line"></div>
+                                <div class="staff-line"></div>
+                                <div class="staff-line"></div>
+                                <div class="staff-line"></div>
+                                <div class="staff-line"></div>
+                            </div>
+                            <div class="treble-clef">𝄞</div>
+                            <div class="notes-container"></div>
+                        </div>
+                        <button class="clear-staff-btn">Clear Song</button>
                     </div>
+                    
+                    <div class="keyboard-controls">
+                        <div class="control-instructions">
+                            <h4>🎮 Keyboard Controls:</h4>
+                            <div class="key-mappings">
+                                <div class="key-mapping">
+                                    <span class="key-display">↑</span>
+                                </div>
+                                <div class="key-mapping">
+                                    <span class="key-display">↓</span>
+                                </div>
+                                <div class="key-mapping">
+                                    <span class="key-display">←</span>
+                                </div>
+                                <div class="key-mapping">
+                                    <span class="key-display">→</span>
+                                </div>
+                                <div class="key-mapping">
+                                    <span class="key-display">A</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ocarina-controls">
+                        <button class="ocarina-btn" data-note="A" data-key="ArrowUp">↑</button>
+                        <button class="ocarina-btn" data-note="F" data-key="ArrowDown">↓</button>
+                        <button class="ocarina-btn" data-note="D" data-key="ArrowLeft">←</button>
+                        <button class="ocarina-btn" data-note="B" data-key="ArrowRight">→</button>
+                        <button class="ocarina-btn" data-note="G" data-key="KeyA">A</button>
+                    </div>
+                    
                     <div class="song-patterns">
                         <button class="song-btn" data-song="zelda">Zelda's Lullaby</button>
                         <button class="song-btn" data-song="epona">Epona's Song</button>
@@ -56,11 +95,7 @@
                 </div>
             </div>
 
-                <div class="image-side">
-                    <div class="picture-of-me">
-                        <img class="personal-image" src="/assets/images/poncho.jpg" alt="Image of Jesse Bremer">
-                    </div>
-                </div>
+               
         </div>
 
            
