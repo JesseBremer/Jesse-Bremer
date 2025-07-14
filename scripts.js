@@ -4,45 +4,55 @@ class OcarinaPlayer {
         this.isPlaying = false;
         this.currentSong = [];
         this.maxNotesOnStaff = 16;
+        this.lastPlayedKey = null;
         
         this.keyMapping = {
-            'ArrowUp': 'A',
-            'ArrowDown': 'F', 
-            'ArrowLeft': 'D',
-            'ArrowRight': 'B',
-            'KeyA': 'G'
+            'ArrowUp': 'B',
+            'ArrowDown': 'D', 
+            'ArrowLeft': 'A',
+            'ArrowRight': 'E',
+            'KeyA': 'F'
         };
         
         this.noteToArrow = {
-            'A': '↑',
-            'F': '↓',
-            'D': '←',
-            'B': '→',
-            'G': 'A'
+            'B': '↑',
+            'F': 'A',
+            'D': '↓',
+            'A': '←',
+            'E': '→'
         };
         
         this.noteFrequencies = {
-            'A': 440.00,
-            'F': 349.23,
             'D': 293.66,
-            'B': 493.88,
-            'G': 392.00
+            'E': 329.63,
+            'F': 349.23,
+            'A': 440.00,
+            'B': 493.88
         };
         
         this.notePositions = {
-            'A': 5,
-            'G': 15,
-            'F': 25,
-            'E': 35,
-            'D': 45,
-            'C': 55,
-            'B': 65
+            'B': 5,
+            'A': 15,
+            'G': 25,
+            'F': 35,
+            'E': 45,
+            'D': 55,
+            'C': 65
         };
         
         this.songs = {
-            'zelda': ['D', 'F', 'A', 'D', 'F', 'A', 'D'],
-            'epona': ['A', 'B', 'A', 'A', 'B', 'A'],
-            'saria': ['F', 'A', 'B', 'F', 'A', 'B']
+            'zelda': ['A', 'B', 'E', 'A', 'B', 'E'],
+            'epona': ['B', 'A', 'E', 'B', 'A', 'E'],
+            'saria': ['D', 'E', 'A', 'D', 'E', 'A'],
+            'sun': ['E', 'D', 'B', 'E', 'D', 'B'],
+            'song_of_time': ['E', 'F', 'D', 'E', 'F', 'D'],
+            'song_of_storms': ['F', 'D', 'B', 'F', 'D', 'B'],
+            'minuet': ['F', 'B', 'A', 'E', 'A', 'E'],
+            'bolero': ['D', 'F', 'D', 'F', 'E', 'D', 'E', 'D'],
+            'serenade': ['F', 'D', 'E', 'E', 'A'],
+            'requiem': ['F', 'D', 'F', 'E', 'D', 'F'],
+            'nocturne': ['A', 'E', 'E', 'F', 'A', 'E', 'D'],
+            'prelude': ['B', 'E', 'B', 'E', 'A', 'B']
         };
         
         this.init();
@@ -99,7 +109,8 @@ class OcarinaPlayer {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
         
-        this.playNote(note);
+        this.lastPlayedKey = keyCode;
+        this.playOcarinaNote(note);
         this.addNoteToStaff(note);
         this.highlightKey(keyCode);
         
@@ -114,7 +125,7 @@ class OcarinaPlayer {
         this.unhighlightKey(keyCode);
     }
     
-    playNote(note, duration = 0.5) {
+    playOcarinaNote(note, duration = 0.5) {
         if (!this.audioContext) return;
         
         const oscillator = this.audioContext.createOscillator();
@@ -127,7 +138,7 @@ class OcarinaPlayer {
         oscillator.type = 'sine';
         
         gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0.25, this.audioContext.currentTime + 0.1);
         gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
         
         oscillator.start(this.audioContext.currentTime);
@@ -182,7 +193,7 @@ class OcarinaPlayer {
         const notes = this.songs[songName];
         
         for (let i = 0; i < notes.length; i++) {
-            this.playNote(notes[i], 0.8);
+            this.playOcarinaNote(notes[i], 0.8);
             this.addNoteToStaff(notes[i]);
             this.highlightNote(notes[i]);
             await this.wait(900);
