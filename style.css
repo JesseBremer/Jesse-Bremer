@@ -2,28 +2,63 @@
   --color-primary-green: #606C38;
   --color-dark-green: #283618;
   --color-light-cream: #FEFAE0;
-  --color-medium-brown: #DDA15E;
-  --color-dark-brown: #BC6C25;
+  --color-gold: #EEC947;
+  --color-light-gold: #f9eac3;
 }
 
 * {
     margin: 0;
     background-color: var(--color-dark-green);
-    color: var(--color-medium-brown);
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 .page-container {
-    display: flex;
+    /* display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
+    text-align: center; */
 }
 
-.title, .about, .skills, .contact-me {
-    margin: 2rem 0 0;
+nav {
+    padding: 3rem 0;
+    display: flex;
+    width: 100vw;
+    justify-content: space-around;
+    align-items: center;
+}
+
+nav ul {
+    display: flex;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+ nav ul li a:hover {
+    text-decoration: underline;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--color-gold);
+    font-size: 2em;
+    padding: 10px;
+}
+
+.personal-image {
+    max-width: 500px;
+    max-height: 500px;
+}
+
+/* .title, .about, .skills, .contact-me {
+    margin: 1.5rem;
     max-width: 50%;
+    background: var(--color-light-gold);
+    padding: 2rem;
+    border-radius: 2%;
 }
 
 .skills-list {
@@ -42,4 +77,4 @@
 
 .skills-list dd {
     margin-left: 0; 
-}
+} */
