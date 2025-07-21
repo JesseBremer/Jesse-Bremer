@@ -334,6 +334,38 @@ i {
     }
 }
 
+@keyframes songRecognizedGlow {
+    0% {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        background-color: var(--hyrule-dark-brown);
+        transform: scale(1);
+    }
+    25% {
+        box-shadow: 0 0 20px var(--triforce-gold), 0 0 30px var(--triforce-gold);
+        background-color: var(--triforce-gold);
+        transform: scale(1.2);
+    }
+    50% {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        background-color: var(--hyrule-dark-brown);
+        transform: scale(1);
+    }
+    75% {
+        box-shadow: 0 0 20px var(--triforce-gold), 0 0 30px var(--triforce-gold);
+        background-color: var(--triforce-gold);
+        transform: scale(1.2);
+    }
+    100% {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        background-color: var(--hyrule-dark-brown);
+        transform: scale(1);
+    }
+}
+
+.musical-note.song-recognized {
+    animation: songRecognizedGlow 1.5s ease-in-out;
+}
+
 .clear-staff-btn {
     display: block;
     margin: 1rem auto 0;

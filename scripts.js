@@ -59,6 +59,24 @@ class OcarinaPlayer {
             'prelude': ['B5', 'E5', 'B5', 'E5', 'A5', 'B5']
         };
         
+        this.songNames = {
+            'zelda': "Zelda's Lullaby",
+            'epona': "Epona's Song", 
+            'saria': "Saria's Song (Lost Woods)",
+            'sun': "Sun's Song",
+            'song_of_time': "Song of Time",
+            'song_of_storms': "Song of Storms", 
+            'minuet': "Minuet of Forest",
+            'bolero': "Bolero of Fire",
+            'serenade': "Serenade of Water",
+            'requiem': "Requiem of Spirit", 
+            'nocturne': "Nocturne of Shadow",
+            'prelude': "Prelude of Light"
+        };
+        
+        this.currentSongName = "Your Song";
+        this.lastRecognizedSong = null;
+        
         this.init();
     }
     
@@ -154,6 +172,9 @@ class OcarinaPlayer {
         window.addEventListener('resize', () => {
             this.repositionNotes();
         });
+        
+        // Initialize the staff title
+        this.updateStaffTitle();
     }
     
     handleNotePlay(note, keyCode) {
@@ -179,6 +200,9 @@ class OcarinaPlayer {
             this.currentSong.shift();
             this.refreshStaff();
         }
+        
+        // Check for song recognition
+        this.checkSongRecognition();
     }
     
     handleNoteRelease(keyCode) {
@@ -386,6 +410,8 @@ class OcarinaPlayer {
         const notesContainer = document.querySelector('.notes-container');
         notesContainer.innerHTML = '';
         this.currentSong = [];
+        this.currentSongName = "Your Song";
+        this.updateStaffTitle();
     }
     
     refreshStaff() {
@@ -400,6 +426,11 @@ class OcarinaPlayer {
         
         this.isPlaying = true;
         this.clearStaff();
+        
+        // Set the song name
+        this.currentSongName = this.songNames[songName];
+        this.updateStaffTitle();
+        
         const notes = this.songs[songName];
         
         for (let i = 0; i < notes.length; i++) {
@@ -408,6 +439,10 @@ class OcarinaPlayer {
             this.highlightNote(notes[i]);
             await this.wait(900);
         }
+        
+        // Clear the staff after song completes
+        await this.wait(500); // Brief pause before clearing
+        this.clearStaff();
         
         this.isPlaying = false;
     }
@@ -531,6 +566,10 @@ class OcarinaPlayer {
         this.isPlaying = true;
         this.clearStaff();
         
+        // Set custom song name
+        this.currentSongName = "Your Custom Song";
+        this.updateStaffTitle();
+        
         const playCustomBtn = document.querySelector('.play-custom-btn');
         playCustomBtn.disabled = true;
         
@@ -551,8 +590,132 @@ class OcarinaPlayer {
             lastTimestamp = recordedNote.timestamp;
         }
         
+        // Clear the staff after custom song completes
+        await this.wait(500); // Brief pause before clearing
+        this.clearStaff();
+        
         this.isPlaying = false;
         playCustomBtn.disabled = false;
+    }
+    
+    updateStaffTitle() {
+        const staffTitle = document.querySelector('.staff-title');
+        if (staffTitle) {
+            staffTitle.textContent = this.currentSongName + ':';
+        }
+    }
+    
+    checkSongRecognition() {
+        // Don't recognize songs while recording or during playback
+        if (this.isRecording || this.isPlaying) return;
+        
+        const recognizedSong = this.recognizeSong(this.currentSong);
+        if (recognizedSong && recognizedSong !== this.lastRecognizedSong) {
+            this.currentSongName = this.songNames[recognizedSong];
+            this.updateStaffTitle();
+            this.lastRecognizedSong = recognizedSong;
+            
+            // Trigger the recognition effects immediately
+            this.triggerSongRecognitionEffect();
+            
+            // Then start the song playback after the effect completes
+            setTimeout(() => {
+                if (!this.isPlaying && !this.isRecording) {
+                    this.playSong(recognizedSong);
+                }
+            }, 2000); // Increased delay to let the effect complete
+        } else if (!recognizedSong && this.currentSongName !== "Your Song") {
+            this.currentSongName = "Your Song";
+            this.updateStaffTitle();
+            this.lastRecognizedSong = null;
+        }
+    }
+    
+    recognizeSong(currentNotes) {
+        if (currentNotes.length === 0) return null;
+        
+        for (const [songKey, songPattern] of Object.entries(this.songs)) {
+            if (this.matchesSongPattern(currentNotes, songPattern)) {
+                return songKey;
+            }
+        }
+        return null;
+    }
+    
+    matchesSongPattern(currentNotes, songPattern) {
+        const songLength = songPattern.length;
+        
+        // Check if we have enough notes to match the song
+        if (currentNotes.length < songLength) return false;
+        
+        // Check exact match at the end of current notes
+        const endSlice = currentNotes.slice(-songLength);
+        if (this.arraysEqual(endSlice, songPattern)) {
+            return true;
+        }
+        
+        // Check if the pattern exists anywhere in the current sequence
+        for (let i = 0; i <= currentNotes.length - songLength; i++) {
+            const slice = currentNotes.slice(i, i + songLength);
+            if (this.arraysEqual(slice, songPattern)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        return arr1.every((val, index) => val === arr2[index]);
+    }
+    
+    playZeldaSuccessTone() {
+        if (!this.audioContext) return;
+
+        const now = this.audioContext.currentTime;
+        const notes = [
+            { freq: 659.25, time: 0.0, duration: 0.2 },     // E5
+            { freq: 740.00, time: 0.2, duration: 0.2 },     // F#5  
+            { freq: 830.61, time: 0.4, duration: 0.2 },     // G#5
+            { freq: 987.77, time: 0.6, duration: 0.4 }      // B5 (longer)
+        ];
+
+        notes.forEach(noteInfo => {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(noteInfo.freq, now + noteInfo.time);
+            
+            gainNode.gain.setValueAtTime(0, now + noteInfo.time);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + noteInfo.time + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + noteInfo.time + noteInfo.duration);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.start(now + noteInfo.time);
+            oscillator.stop(now + noteInfo.time + noteInfo.duration);
+        });
+    }
+    
+    triggerSongRecognitionEffect() {
+        // Play the success tone
+        this.playZeldaSuccessTone();
+        
+        // Add glow animation to all current notes
+        const notes = document.querySelectorAll('.musical-note');
+        notes.forEach(note => {
+            note.classList.add('song-recognized');
+        });
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            notes.forEach(note => {
+                note.classList.remove('song-recognized');
+            });
+        }, 1500);
     }
 }
 
