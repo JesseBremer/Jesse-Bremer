@@ -85,15 +85,48 @@ class OcarinaPlayer {
         });
         
         document.querySelectorAll('.ocarina-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            // Mouse/touch events for buttons
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 const note = e.target.dataset.note;
                 const key = e.target.dataset.key;
                 this.handleNotePlay(note, key);
                 this.animateButton(e.target);
-                
-                setTimeout(() => {
-                    this.handleNoteRelease(key);
-                }, 300);
+            });
+            
+            btn.addEventListener('mouseup', (e) => {
+                const key = e.target.dataset.key;
+                this.handleNoteRelease(key);
+            });
+            
+            btn.addEventListener('mouseleave', (e) => {
+                const key = e.target.dataset.key;
+                this.handleNoteRelease(key);
+            });
+            
+            // Touch events for mobile devices
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const note = e.target.dataset.note;
+                const key = e.target.dataset.key;
+                this.handleNotePlay(note, key);
+                this.animateButton(e.target);
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const key = e.target.dataset.key;
+                this.handleNoteRelease(key);
+            });
+            
+            btn.addEventListener('touchcancel', (e) => {
+                const key = e.target.dataset.key;
+                this.handleNoteRelease(key);
+            });
+            
+            // Keep the original click for fallback
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
             });
         });
         
@@ -115,6 +148,11 @@ class OcarinaPlayer {
         
         document.querySelector('.play-custom-btn').addEventListener('click', () => {
             this.playCustomSong();
+        });
+        
+        // Handle window resize to reposition notes
+        window.addEventListener('resize', () => {
+            this.repositionNotes();
         });
     }
     
@@ -298,7 +336,8 @@ class OcarinaPlayer {
         noteElement.textContent = this.noteToArrow[note] || note;
         
         const yPosition = this.notePositions[note] || 45;
-        const xPosition = notesContainer.children.length * 35 + 10;
+        const { noteSpacing, startOffset } = this.getResponsiveNoteSpacing();
+        const xPosition = notesContainer.children.length * noteSpacing + startOffset;
         
         noteElement.style.top = yPosition + 'px';
         noteElement.style.left = xPosition + 'px';
@@ -313,9 +352,34 @@ class OcarinaPlayer {
     
     repositionNotes() {
         const notesContainer = document.querySelector('.notes-container');
+        const { noteSpacing, startOffset } = this.getResponsiveNoteSpacing();
         Array.from(notesContainer.children).forEach((note, index) => {
-            note.style.left = (index * 35 + 10) + 'px';
+            note.style.left = (index * noteSpacing + startOffset) + 'px';
         });
+    }
+
+    getResponsiveNoteSpacing() {
+        const notesContainer = document.querySelector('.notes-container');
+        const containerWidth = notesContainer.offsetWidth;
+        
+        // Calculate responsive spacing based on container width and max notes
+        const availableWidth = containerWidth - 20; // Leave some margin
+        const maxSpacing = 35;
+        const minSpacing = 18;
+        
+        // Calculate ideal spacing to fit max notes
+        let noteSpacing = Math.max(minSpacing, Math.min(maxSpacing, availableWidth / this.maxNotesOnStaff));
+        
+        // Adjust spacing for smaller screens
+        if (window.innerWidth <= 480) {
+            noteSpacing = Math.min(noteSpacing, 25);
+        } else if (window.innerWidth <= 768) {
+            noteSpacing = Math.min(noteSpacing, 30);
+        }
+        
+        const startOffset = 5;
+        
+        return { noteSpacing, startOffset };
     }
     
     clearStaff() {
