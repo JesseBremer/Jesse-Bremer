@@ -76,6 +76,24 @@ class OcarinaPlayer {
         
         this.currentSongName = "Your Song";
         this.lastRecognizedSong = null;
+        this.currentTheme = 'default';
+        this.templeSongs = ['minuet', 'bolero', 'serenade', 'requiem', 'nocturne', 'prelude'];
+        
+        // Load horse audio file
+        this.horseAudio = new Audio('assets/images/epona_neigh.mp3');
+        this.horseAudio.preload = 'auto';
+        this.horseAudio.volume = 0.7;
+        this.horseAudioReady = false;
+        
+        // Setup audio ready event
+        this.horseAudio.addEventListener('canplaythrough', () => {
+            this.horseAudioReady = true;
+        });
+        
+        this.horseAudio.addEventListener('error', (e) => {
+            console.log('Horse audio loading error:', e);
+            this.horseAudioReady = false;
+        });
         
         this.init();
     }
@@ -357,6 +375,14 @@ class OcarinaPlayer {
         const notesContainer = document.querySelector('.notes-container');
         const noteElement = document.createElement('div');
         noteElement.className = 'musical-note';
+        
+        // Add color classes based on note type
+        if (note === 'F5') {
+            noteElement.className += ' note-blue'; // A button
+        } else if (['B5', 'D5', 'A5', 'E5'].includes(note)) {
+            noteElement.className += ' note-yellow'; // Directional keys
+        }
+        
         noteElement.textContent = this.noteToArrow[note] || note;
         
         const yPosition = this.notePositions[note] || 45;
@@ -443,6 +469,9 @@ class OcarinaPlayer {
         // Clear the staff after song completes
         await this.wait(500); // Brief pause before clearing
         this.clearStaff();
+        
+        // Trigger song-specific effects
+        this.triggerSongEffect(songName);
         
         this.isPlaying = false;
     }
@@ -716,6 +745,288 @@ class OcarinaPlayer {
                 note.classList.remove('song-recognized');
             });
         }, 1500);
+    }
+    
+    triggerSongEffect(songName) {
+        // Apply persistent themes immediately for temple songs
+        if (this.templeSongs.includes(songName)) {
+            switch(songName) {
+                case 'minuet':
+                    this.applyPersistentTheme('forest');
+                    break;
+                case 'bolero':
+                    this.applyPersistentTheme('fire');
+                    break;
+                case 'serenade':
+                    this.applyPersistentTheme('water');
+                    break;
+                case 'requiem':
+                    this.applyPersistentTheme('spirit');
+                    break;
+                case 'nocturne':
+                    this.applyPersistentTheme('shadow');
+                    break;
+                case 'prelude':
+                    this.applyPersistentTheme('light');
+                    break;
+            }
+        }
+        
+        // Handle special case for Saria's song (reset theme)
+        if (songName === 'saria') {
+            this.applyPersistentTheme('default');
+        }
+        
+        // Play visual effects
+        switch(songName) {
+            case 'zelda':
+                this.zeldaLullabyEffect();
+                break;
+            case 'epona':
+                this.eponasSongEffect();
+                break;
+            case 'saria':
+                this.sariasSongEffect();
+                break;
+            case 'sun':
+                this.sunsSongEffect();
+                break;
+            case 'song_of_time':
+                this.songOfTimeEffect();
+                break;
+            case 'song_of_storms':
+                this.songOfStormsEffect();
+                break;
+            case 'minuet':
+                this.minuetOfForestEffect();
+                break;
+            case 'bolero':
+                this.boleroOfFireEffect();
+                break;
+            case 'serenade':
+                this.serenadeOfWaterEffect();
+                break;
+            case 'requiem':
+                this.requiemOfSpiritEffect();
+                break;
+            case 'nocturne':
+                this.nocturneOfShadowEffect();
+                break;
+            case 'prelude':
+                this.preludeOfLightEffect();
+                break;
+        }
+    }
+    
+    applyPersistentTheme(theme) {
+        document.body.classList.remove('forest-theme-persistent', 'fire-theme-persistent', 'water-theme-persistent', 'spirit-theme-persistent', 'shadow-theme-persistent', 'light-theme-persistent');
+        
+        if (theme !== 'default') {
+            document.body.classList.add(theme + '-theme-persistent');
+        }
+        
+        this.currentTheme = theme;
+    }
+    
+    showTextOverlay(text, duration = 3000, className = '') {
+        const overlay = document.createElement('div');
+        overlay.className = `song-text-overlay ${className}`;
+        overlay.textContent = text;
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => {
+            overlay.classList.add('fade-out');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 500);
+        }, duration);
+    }
+    
+    zeldaLullabyEffect() {
+        document.body.classList.add('royal-theme');
+        this.showTextOverlay("Princess Zelda's wisdom guides you...", 3000, 'royal-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('royal-theme');
+        }, 5000);
+    }
+    
+    eponasSongEffect() {
+        this.playHorseWhinny();
+        this.showTextOverlay("Epona responds to your call!", 2500, 'epona-text');
+    }
+    
+    sariasSongEffect() {
+        document.body.classList.add('forest-theme');
+        this.showTextOverlay("Oh! Oh-oh! C'mon! Come on! Come on! Come on! HOT!! What a hot beat! WHOOOOAH! YEEEEAH! YAHOOO!!", 4000, 'sage-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('forest-theme');
+        }, 6000);
+    }
+    
+    sunsSongEffect() {
+        document.body.classList.add('bright-sun');
+        this.showTextOverlay("The rising sun will eventually set, a newborn's life will fade. From sun to moon, moon to sun... Give peaceful rest to the living dead.", 6000, 'sun-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('bright-sun');
+        }, 3000);
+    }
+    
+    songOfTimeEffect() {
+        document.body.classList.add('time-distortion');
+        this.showTextOverlay("Time flows like a river...", 3000, 'time-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('time-distortion');
+        }, 4000);
+    }
+    
+    songOfStormsEffect() {
+        document.body.classList.add('storm-theme');
+        this.createRainEffect();
+        this.showTextOverlay("Grrrr! I'll never forget what happened on that day, seven years ago! Grrrrrrr! It's all that Ocarina kid's fault! Next time he comes around here, I'm gonna mess him up!", 6000, 'storm-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('storm-theme');
+        }, 5000);
+    }
+    
+    minuetOfForestEffect() {
+        document.body.classList.add('forest-theme');
+        this.showTextOverlay("The flow of time is always cruel... Its speed seems different for each person, but no one can change it... A thing that doesn't change with time is a memory of younger days...", 5000, 'forest-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('forest-theme');
+        }, 3000);
+    }
+    
+    boleroOfFireEffect() {
+        document.body.classList.add('fire-theme');
+        this.showTextOverlay("It is something that grows over time... a true friendship. A feeling in the heart that becomes even stronger over time... The passion of friendship will soon blossom into a righteous power and through it, you will know which way to go... This song is dedicated to the power of the heart.", 6000, 'fire-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('fire-theme');
+        }, 6500);
+    }
+    
+    serenadeOfWaterEffect() {
+        document.body.classList.add('water-theme');
+        this.showTextOverlay("Time passes, people move... Like a river's flow, it never ends. A childish mind will turn to noble ambition... Young love will become deep affection... The clear water's surface reflects growth... Now listen to the Serenade of Water to reflect upon yourself.", 6000, 'water-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('water-theme');
+        }, 6500);
+    }
+    
+    requiemOfSpiritEffect() {
+        document.body.classList.add('warp-effect');
+        this.showTextOverlay("Past, present, future... The Master Sword is a ship with which you can sail upstream and downstream through time's river... The port for that ship is in the Temple of Time... To restore the Desert Colossus and enter the Spirit Temple, you must travel back through time's flow... Listen to this Requiem of Spirit... This melody will lead a child back to the desert.", 6000, 'spirit-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('warp-effect');
+            document.body.classList.add('desert-theme');
+            setTimeout(() => {
+                document.body.classList.remove('desert-theme');
+            }, 3000);
+        }, 1500);
+    }
+    
+    nocturneOfShadowEffect() {
+        document.body.classList.add('shadow-theme');
+        this.showTextOverlay("This is the melody that will draw you into the infinite darkness that absorbs even time...", 4000, 'shadow-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('shadow-theme');
+        }, 5000);
+    }
+    
+    preludeOfLightEffect() {
+        document.body.classList.add('light-theme');
+        this.showTextOverlay("As long as you hold the Ocarina of Time and the Master Sword, you hold time itself in your hands...", 3000, 'light-text');
+        
+        setTimeout(() => {
+            document.body.classList.remove('light-theme');
+        }, 3500);
+    }
+    
+    async playHorseWhinny() {
+        if (this.horseAudioReady) {
+            try {
+                this.horseAudio.currentTime = 0;
+                await this.horseAudio.play();
+                return;
+            } catch (error) {
+                console.log('Horse MP3 playback failed:', error);
+            }
+        }
+        
+        try {
+            this.horseAudio.load();
+            this.horseAudio.currentTime = 0;
+            await this.horseAudio.play();
+        } catch (error) {
+            console.log('Horse audio load/play failed:', error);
+            this.playFallbackHorseSound();
+        }
+    }
+    
+    playFallbackHorseSound() {
+        if (!this.audioContext) return;
+        
+        const now = this.audioContext.currentTime;
+        const duration = 1.5;
+        
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.linearRampToValueAtTime(400, now + 0.5);
+        osc.frequency.linearRampToValueAtTime(150, now + duration);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+        
+        osc.start(now);
+        osc.stop(now + duration);
+    }
+    
+    createRainEffect() {
+        const rainContainer = document.createElement('div');
+        rainContainer.className = 'rain-container';
+        document.body.appendChild(rainContainer);
+        
+        // Create multiple rain drops
+        for (let i = 0; i < 100; i++) {
+            setTimeout(() => {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                rainContainer.appendChild(drop);
+            }, Math.random() * 1000);
+        }
+        
+        // Remove rain effect after 5 seconds
+        setTimeout(() => {
+            if (rainContainer.parentNode) {
+                rainContainer.parentNode.removeChild(rainContainer);
+            }
+        }, 5000);
     }
 }
 
