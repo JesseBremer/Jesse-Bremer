@@ -516,6 +516,65 @@ i {
     color: #FFFF00;
 }
 
+.scarecrow-section {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.scarecrow-section h4 {
+    color: var(--triforce-gold);
+    margin-bottom: 1rem;
+    font-family: 'MedievalSharp', cursive;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.recording-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.record-btn, .play-custom-btn {
+    padding: 0.8rem 1.5rem;
+    border: 3px solid var(--hyrule-gold);
+    border-radius: 25px;
+    background: linear-gradient(145deg, var(--hyrule-forest-green), var(--hyrule-light-green));
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: 'MedievalSharp', cursive;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.record-btn:hover, .play-custom-btn:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 15px var(--triforce-gold);
+}
+
+.record-btn.recording {
+    background: linear-gradient(145deg, #8B0000, #FF4500);
+    border-color: #FF4500;
+    animation: recording-pulse 1s infinite;
+}
+
+@keyframes recording-pulse {
+    0%, 100% { 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    50% { 
+        box-shadow: 0 0 20px #FF4500, 0 4px 8px rgba(0,0,0,0.3);
+    }
+}
+
+.play-custom-btn:disabled {
+    opacity: 0.5;
+    background: linear-gradient(145deg, #666, #888);
+    border-color: #888;
+    color: #ccc;
+}
+
 .contact-me {
     display: flex;
     flex-direction: column;

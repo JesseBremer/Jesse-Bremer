@@ -5,6 +5,10 @@ class OcarinaPlayer {
         this.currentSong = [];
         this.maxNotesOnStaff = 16;
         this.lastPlayedKey = null;
+        this.activeOscillators = new Map();
+        this.isRecording = false;
+        this.recordedSong = [];
+        this.recordingStartTime = null;
         
         this.keyMapping = {
             'ArrowUp': 'B5',
@@ -68,7 +72,9 @@ class OcarinaPlayer {
         document.addEventListener('keydown', (e) => {
             if (this.keyMapping[e.code]) {
                 e.preventDefault();
-                this.handleNotePlay(this.keyMapping[e.code], e.code);
+                if (!e.repeat) {
+                    this.handleNotePlay(this.keyMapping[e.code], e.code);
+                }
             }
         });
         
@@ -102,6 +108,14 @@ class OcarinaPlayer {
         document.querySelector('.clear-staff-btn').addEventListener('click', () => {
             this.clearStaff();
         });
+        
+        document.querySelector('.record-btn').addEventListener('click', () => {
+            this.toggleRecording();
+        });
+        
+        document.querySelector('.play-custom-btn').addEventListener('click', () => {
+            this.playCustomSong();
+        });
     }
     
     handleNotePlay(note, keyCode) {
@@ -109,10 +123,18 @@ class OcarinaPlayer {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
         
+        if (this.activeOscillators.has(keyCode)) {
+            return;
+        }
+        
         this.lastPlayedKey = keyCode;
-        this.playOcarinaNote(note);
+        this.startSustainedNote(note, keyCode);
         this.addNoteToStaff(note);
         this.highlightKey(keyCode);
+        
+        if (this.isRecording) {
+            this.recordNote(note);
+        }
         
         this.currentSong.push(note);
         if (this.currentSong.length > this.maxNotesOnStaff) {
@@ -122,27 +144,151 @@ class OcarinaPlayer {
     }
     
     handleNoteRelease(keyCode) {
+        this.stopSustainedNote(keyCode);
         this.unhighlightKey(keyCode);
     }
     
-    playOcarinaNote(note, duration = 0.5) {
-        if (!this.audioContext) return;
+    startSustainedNote(note, keyCode) {
+        if (!this.audioContext || !this.noteFrequencies[note]) return;
         
+        if (this.activeOscillators.has(keyCode)) {
+            return;
+        }
+
+        const now = this.audioContext.currentTime;
+
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
+        const filter = this.audioContext.createBiquadFilter();
+        const noise = this.audioContext.createBufferSource();
+        const noiseGain = this.audioContext.createGain();
+
+        oscillator.type = 'triangle'; 
+        oscillator.frequency.setValueAtTime(this.noteFrequencies[note], now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, now); 
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.35, now + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0.25, now + 0.15);
+
+        const bufferSize = this.audioContext.sampleRate;
+        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.25; 
+        }
+
+        noise.buffer = buffer;
+        noise.loop = true;
+        noiseGain.gain.setValueAtTime(0.02, now);
+
+        const vibrato = this.audioContext.createOscillator();
+        const vibratoGain = this.audioContext.createGain();
+        vibrato.frequency.setValueAtTime(5.8, now); 
+        vibratoGain.gain.setValueAtTime(4.5, now); 
+
+        vibrato.connect(vibratoGain);
+        vibratoGain.connect(oscillator.frequency);
+
+        oscillator.connect(filter);
+        noise.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(this.noteFrequencies[note], this.audioContext.currentTime);
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.25, this.audioContext.currentTime + 0.1);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration);
+
+        vibrato.start(now);
+        noise.start(now);
+        oscillator.start(now);
+
+        this.activeOscillators.set(keyCode, {
+            oscillator,
+            gainNode,
+            filter,
+            noise,
+            noiseGain,
+            vibrato,
+            vibratoGain
+        });
+    }
+
+    stopSustainedNote(keyCode) {
+        const audioNodes = this.activeOscillators.get(keyCode);
+        if (!audioNodes) return;
+
+        const now = this.audioContext.currentTime;
+        const fadeOutTime = 0.1;
+
+        audioNodes.gainNode.gain.exponentialRampToValueAtTime(0.001, now + fadeOutTime);
+
+        setTimeout(() => {
+            try {
+                audioNodes.oscillator.stop();
+                audioNodes.vibrato.stop();
+                audioNodes.noise.stop();
+            } catch (e) {
+                // Nodes may have already been stopped
+            }
+            this.activeOscillators.delete(keyCode);
+        }, fadeOutTime * 1000 + 50);
+    }
+
+    playOcarinaNote(note, duration = 0.5) {
+        if (!this.audioContext || !this.noteFrequencies[note]) return;
+
+        const now = this.audioContext.currentTime;
+
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+        const noise = this.audioContext.createBufferSource();
+        const noiseGain = this.audioContext.createGain();
+
+        oscillator.type = 'triangle'; 
+        oscillator.frequency.setValueAtTime(this.noteFrequencies[note], now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, now); 
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.35, now + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0.25, now + 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        const bufferSize = this.audioContext.sampleRate;
+        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.25; 
+        }
+
+        noise.buffer = buffer;
+        noise.loop = true;
+        noiseGain.gain.setValueAtTime(0.02, now);
+
+        const vibrato = this.audioContext.createOscillator();
+        const vibratoGain = this.audioContext.createGain();
+        vibrato.frequency.setValueAtTime(5.8, now); 
+        vibratoGain.gain.setValueAtTime(4.5, now); 
+
+        vibrato.connect(vibratoGain);
+        vibratoGain.connect(oscillator.frequency);
+
+        oscillator.connect(filter);
+        noise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        vibrato.start(now);
+        vibrato.stop(now + duration);
+
+        noise.start(now);
+        noise.stop(now + duration);
+
+        oscillator.start(now);
+        oscillator.stop(now + duration);
     }
     
     addNoteToStaff(note) {
@@ -268,6 +414,81 @@ class OcarinaPlayer {
                 button.classList.remove('active');
             }, 700);
         }
+    }
+    
+    toggleRecording() {
+        if (this.isRecording) {
+            this.stopRecording();
+        } else {
+            this.startRecording();
+        }
+    }
+    
+    startRecording() {
+        this.isRecording = true;
+        this.recordedSong = [];
+        this.recordingStartTime = Date.now();
+        
+        const recordBtn = document.querySelector('.record-btn');
+        recordBtn.textContent = '🛑 Stop Recording';
+        recordBtn.classList.add('recording');
+        
+        this.clearStaff();
+    }
+    
+    stopRecording() {
+        this.isRecording = false;
+        
+        const recordBtn = document.querySelector('.record-btn');
+        const playCustomBtn = document.querySelector('.play-custom-btn');
+        
+        recordBtn.textContent = '🎙️ Record';
+        recordBtn.classList.remove('recording');
+        
+        if (this.recordedSong.length > 0) {
+            playCustomBtn.disabled = false;
+            playCustomBtn.title = `Play your recorded song (${this.recordedSong.length} notes)`;
+        }
+    }
+    
+    recordNote(note) {
+        if (!this.isRecording) return;
+        
+        const timestamp = Date.now() - this.recordingStartTime;
+        this.recordedSong.push({
+            note: note,
+            timestamp: timestamp
+        });
+    }
+    
+    async playCustomSong() {
+        if (this.isPlaying || this.recordedSong.length === 0) return;
+        
+        this.isPlaying = true;
+        this.clearStaff();
+        
+        const playCustomBtn = document.querySelector('.play-custom-btn');
+        playCustomBtn.disabled = true;
+        
+        let lastTimestamp = 0;
+        
+        for (let i = 0; i < this.recordedSong.length; i++) {
+            const recordedNote = this.recordedSong[i];
+            const waitTime = recordedNote.timestamp - lastTimestamp;
+            
+            if (waitTime > 0) {
+                await this.wait(waitTime);
+            }
+            
+            this.playOcarinaNote(recordedNote.note, 0.8);
+            this.addNoteToStaff(recordedNote.note);
+            this.highlightNote(recordedNote.note);
+            
+            lastTimestamp = recordedNote.timestamp;
+        }
+        
+        this.isPlaying = false;
+        playCustomBtn.disabled = false;
     }
 }
 
